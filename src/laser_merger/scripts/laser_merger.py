@@ -27,10 +27,11 @@ class laser_scan():
             ary = self.point_cloud_ary
             n = len(ary)
             ary = np.hstack([ary,np.zeros(n).reshape(n,1)])
-            trans = tfs.translation_matrix(transform[0])
             rot = tfs.quaternion_matrix(transform[1])
-            transform_matrix = np.dot(trans,rot)
+            transform_matrix = rot
             result = np.apply_along_axis(lambda x: np.dot(transform_matrix,x),1, ary)[0:, 0:3]
+            trans = np.repeat(np.array(transform[0])[None, :], len(result), axis=0)
+            result = result + trans
             return result
         except:
             pass       
@@ -41,6 +42,8 @@ class scan_merger():
         self.base_frame = rospy.get_param("/laser_merger/base_frame")
         self.remove_low_points = rospy.get_param("/laser_merger/remove_low_points")
         self.remove_low_points_th = rospy.get_param("/laser_merger/remove_low_points_th")
+        self.remove_inner_polygon_points = rospy.get_param("/laser_merger/remove_inner_polygon_points")
+        self.remove_polygon = np.array(rospy.get_param("/laser_merger/remove_polygon"))
         self.scans = []
         rospy.init_node('laser_merger')
         self.__pc_pub = rospy.Publisher(rospy.get_param("/laser_merger/publish_pc2_topic"), PointCloud2, queue_size=1)
@@ -49,6 +52,13 @@ class scan_merger():
             self.scans.append(laser_scan(i["topic_name"],self.base_frame))
         rospy.Timer(rospy.Duration(1.0 / float(rospy.get_param("/laser_merger/frequency"))), self.timer_callback)
         rospy.spin()
+
+    def is_inner_polygon(self,vector3d):
+        poly = self.remove_polygon
+        vec = vector3d[0:2]
+        v1 = np.roll(poly, 2) - poly
+        v2 = np.repeat(vec[None, :], len(poly), axis=0) - poly
+        return np.array([not np.any(np.cross(v1, v2) >= 0)])
 
     def timer_callback(self,t):
         lst = []
@@ -66,6 +76,12 @@ class scan_merger():
         data = np.concatenate(lst)
         if self.remove_low_points:
             data = np.delete(data, np.where(data[0:,2:3] < self.remove_low_points_th),axis=0)
+        if self.remove_inner_polygon_points:
+            g = np.apply_along_axis(self.is_inner_polygon,1, data)
+            g.reshape(len(g),1)
+            data_1 = np.hstack([data,g])
+            data = np.delete(data_1, np.where(data_1[0:,3:4] == 1),axis=0)[0:, 0:3]
+
         msg = pc2.create_cloud_xyz32(head,data)
         self.__pc_pub.publish(msg)
 
