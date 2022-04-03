@@ -1,0 +1,23 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.231.2/containers/ubuntu
+{
+	"name": "ros",
+	"build": {
+		"dockerfile": "Dockerfile",
+	},
+	// "workspaceMount": "source=${localWorkspaceFolder}/catkin_,target=/workspace,type=bind,consistency=cached",
+	// "workspaceFolder": "/workspace",
+
+	// Set *default* container specific settings.json values on container create.
+	"settings": {
+		"ros.distro": "melodic"
+	},
+
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-python.python@2021.12.1559732655","ms-iot.vscode-ros@0.6.9"
+	],
+
+	"remoteUser": "vscode",
+	"runArgs": [ "--network=host"] 
+}

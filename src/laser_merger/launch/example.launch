@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="laser_merger" name="laser_merger" type="laser_merger.py" >
+        <rosparam command="load" file="$(find laser_merger)/param/example.yaml" />
+    </node>
+</launch>

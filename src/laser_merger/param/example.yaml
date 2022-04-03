@@ -1,0 +1,7 @@
+scan_list:
+  - topic_name: "/scan"
+  - topic_name: "/vertical_right_scan"
+  - topic_name: "/vertical_left_scan"
+base_frame: "base_link"
+publish_pc2_topic: "merged_pointcloud2"
+frequency: 10  #hz
