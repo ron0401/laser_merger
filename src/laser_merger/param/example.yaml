@@ -5,3 +5,5 @@ scan_list:
 base_frame: "base_link"
 publish_pc2_topic: "merged_pointcloud2"
 frequency: 10  #hz
+remove_low_points: True
+remove_low_points_th: -0.1

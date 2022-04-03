@@ -39,6 +39,8 @@ class scan_merger():
     def __init__(self):
         self.scan_topics = rospy.get_param("/laser_merger/scan_list")
         self.base_frame = rospy.get_param("/laser_merger/base_frame")
+        self.remove_low_points = rospy.get_param("/laser_merger/remove_low_points")
+        self.remove_low_points_th = rospy.get_param("/laser_merger/remove_low_points_th")
         self.scans = []
         rospy.init_node('laser_merger')
         self.__pc_pub = rospy.Publisher(rospy.get_param("/laser_merger/publish_pc2_topic"), PointCloud2, queue_size=1)
@@ -61,7 +63,10 @@ class scan_merger():
         head = Header()
         head.frame_id = self.base_frame
         head.stamp = rospy.Time.now()
-        msg = pc2.create_cloud_xyz32(head,np.concatenate(lst))
+        data = np.concatenate(lst)
+        if self.remove_low_points:
+            data = np.delete(data, np.where(data[0:,2:3] < self.remove_low_points_th),axis=0)
+        msg = pc2.create_cloud_xyz32(head,data)
         self.__pc_pub.publish(msg)
 
 if __name__ == '__main__':
