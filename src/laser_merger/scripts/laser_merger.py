@@ -27,9 +27,10 @@ class laser_scan():
             ary = self.point_cloud_ary
             n = len(ary)
             ary = np.hstack([ary,np.zeros(n).reshape(n,1)])
+            trans = tfs.translation_matrix(transform[0])
             rot = tfs.quaternion_matrix(transform[1])
-            result = np.apply_along_axis(lambda x: np.dot(rot,x),1, ary)[0:, 0:3]
-            result = np.apply_along_axis(lambda x: x + transform[0],1, result)
+            transform_matrix = np.dot(trans,rot)
+            result = np.apply_along_axis(lambda x: np.dot(transform_matrix,x),1, ary)[0:, 0:3]
             return result
         except:
             pass       
